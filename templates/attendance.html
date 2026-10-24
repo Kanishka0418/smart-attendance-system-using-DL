@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <title>Mark Attendance</title>
+
+    <style>
+
+        body {
+            font-family: Arial;
+            background: #f4f7fb;
+            padding: 50px;
+        }
+
+        .container {
+            max-width: 550px;
+            margin: auto;
+            background: white;
+            padding: 35px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            box-sizing: border-box;
+        }
+
+        button {
+            width: 100%;
+            padding: 13px;
+            margin-top: 20px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 7px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close {
+            background: #333;
+        }
+
+        .message {
+            margin-top: 20px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .back {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>Mark Attendance</h1>
+
+    <p style="text-align:center;">
+        Upload student face image
+    </p>
+
+
+    <form method="POST" enctype="multipart/form-data">
+
+        <label>Face Image</label>
+
+        <input
+            type="file"
+            name="face_image"
+            accept="image/*"
+            required
+        >
+
+        <button type="submit">
+            Recognize & Mark Present
+        </button>
+
+    </form>
+
+
+    {% if message %}
+
+    <div class="message">
+        {{ message }}
+    </div>
+
+    {% endif %}
+
+
+    <form action="/close-attendance" method="POST">
+
+        <button type="submit" class="close">
+            Close Attendance & Mark Absent
+        </button>
+
+    </form>
+
+
+    <a href="/" class="back">
+        ← Back to Home
+    </a>
+
+</div>
+
+</body>
+
+</html>

@@ -1,0 +1,146 @@
+
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <title>OD Letter Upload</title>
+
+    <style>
+
+        body {
+            font-family: Arial;
+            background: #f4f7fb;
+            padding: 50px;
+        }
+
+        .container {
+            max-width: 550px;
+            margin: auto;
+            background: white;
+            padding: 35px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        label {
+            display: block;
+            margin-top: 18px;
+            margin-bottom: 7px;
+            font-weight: bold;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 12px;
+            box-sizing: border-box;
+        }
+
+        button {
+            width: 100%;
+            padding: 13px;
+            margin-top: 25px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 7px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .message {
+            text-align: center;
+            margin-top: 20px;
+            font-weight: bold;
+        }
+
+        .back {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>OD Letter Upload</h1>
+
+    <form method="POST" enctype="multipart/form-data">
+
+        <label>Student</label>
+
+        <select name="register_number" required>
+
+            <option value="">
+                Select Student
+            </option>
+
+            {% for student in students %}
+
+            <option value="{{ student.register_number }}">
+
+                {{ student.register_number }}
+                - 
+                {{ student.name }}
+
+            </option>
+
+            {% endfor %}
+
+        </select>
+
+
+        <label>OD Date</label>
+
+        <input
+            type="date"
+            name="date"
+            required
+        >
+
+
+        <label>OD Letter</label>
+
+        <input
+            type="file"
+            name="letter"
+            accept=".pdf,.jpg,.jpeg,.png"
+            required
+        >
+
+
+        <button type="submit">
+            Upload OD Letter
+        </button>
+
+    </form>
+
+
+    {% if message %}
+
+    <div class="message">
+        {{ message }}
+    </div>
+
+    {% endif %}
+
+
+    <a href="/" class="back">
+        ← Back to Home
+    </a>
+
+</div>
+
+</body>
+
+</html>

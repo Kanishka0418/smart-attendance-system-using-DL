@@ -2,6 +2,6 @@
 flask
 opencv-python
 deepface
-tensorflow
+tensorflow==2.15.1
 tf-keras
 gunicorn

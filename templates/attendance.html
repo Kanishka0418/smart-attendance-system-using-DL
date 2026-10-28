@@ -1,128 +1,314 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="en">
 <head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mark Attendance | Smart Attend</title>
 
-    <title>Mark Attendance</title>
-
-    <style>
-
-        body {
-            font-family: Arial;
-            background: #f4f7fb;
-            padding: 50px;
-        }
-
-        .container {
-            max-width: 550px;
-            margin: auto;
-            background: white;
-            padding: 35px;
-            border-radius: 15px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-        }
-
-        h1 {
-            text-align: center;
-        }
-
-        label {
-            display: block;
-            font-weight: bold;
-            margin-bottom: 10px;
-        }
-
-        input {
-            width: 100%;
-            padding: 12px;
-            box-sizing: border-box;
-        }
-
-        button {
-            width: 100%;
-            padding: 13px;
-            margin-top: 20px;
-            background: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 7px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .close {
-            background: #333;
-        }
-
-        .message {
-            margin-top: 20px;
-            text-align: center;
-            font-weight: bold;
-        }
-
-        .back {
-            display: block;
-            text-align: center;
-            margin-top: 20px;
-        }
-
-    </style>
-
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+    --bg:#071329;
+    --panel:#0d2041;
+    --card:#102449;
+    --blue:#347dff;
+    --text:#f1f5ff;
+    --muted:#9bb8e8;
+    --border:#1c3e70;
+}
+body{
+    font-family:"Segoe UI",Arial,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    min-height:100vh;
+}
+.layout{display:flex;min-height:100vh}
+.sidebar{
+    width:245px;flex-shrink:0;background:#091a36;
+    border-right:1px solid var(--border);
+    padding:25px 15px;display:flex;flex-direction:column;
+}
+.brand{display:flex;align-items:center;gap:11px;padding:0 8px 26px;border-bottom:1px solid var(--border)}
+.brand-icon{
+    width:43px;height:43px;display:grid;place-items:center;
+    border-radius:12px;background:linear-gradient(135deg,#347dff,#694cff);
+    font-size:23px
+}
+.brand h2{font-size:15px;letter-spacing:.5px}
+.brand p{font-size:11px;color:var(--muted);margin-top:4px}
+.menu-title{font-size:10px;letter-spacing:2px;color:#7895c4;margin:28px 12px 14px}
+.nav-link{
+    display:flex;align-items:center;gap:12px;padding:14px 12px;
+    margin-bottom:7px;border-radius:9px;color:#b6c9e9;
+    text-decoration:none;font-size:12px;font-weight:600;transition:.2s
+}
+.nav-link:hover,.nav-link.active{background:linear-gradient(90deg,#174bb5,#173b83);color:white}
+.nav-link.active{border-left:3px solid #58a5ff}
+.nav-icon{width:22px;text-align:center;font-size:18px}
+.sidebar-status{
+    margin-top:auto;padding:16px 12px;border:1px solid #1b4788;
+    border-radius:12px;background:#0c2247
+}
+.status-title{font-size:12px;color:#65e6b0;font-weight:700}
+.status-dot{display:inline-block;width:8px;height:8px;background:#32dfa0;border-radius:50%;margin-right:7px}
+.sidebar-status p{font-size:11px;color:#9bb8e8;line-height:1.7;margin-top:9px}
+.main{flex:1;min-width:0;padding:27px 30px}
+.topbar{
+    display:flex;justify-content:space-between;align-items:center;
+    gap:15px;padding-bottom:23px;border-bottom:1px solid var(--border)
+}
+.breadcrumb{font-size:11px;color:#8ca9d8;margin-bottom:8px}
+.topbar h1{font-size:23px}
+.top-right{display:flex;align-items:center;gap:12px}
+.date-chip{font-size:12px;color:#b6c9e9;background:var(--panel);border:1px solid var(--border);padding:11px 13px;border-radius:8px}
+.avatar{
+    width:40px;height:40px;display:grid;place-items:center;
+    border-radius:50%;background:linear-gradient(135deg,#347dff,#694cff);font-weight:bold
+}
+.hero{
+    display:flex;align-items:center;gap:19px;margin-top:25px;
+    padding:26px;border-radius:16px;
+    background:linear-gradient(110deg,#102b60,#101d45);
+    border:1px solid #193e7a
+}
+.hero-icon{
+    width:65px;height:65px;flex-shrink:0;display:grid;place-items:center;
+    border-radius:16px;background:linear-gradient(135deg,#1768ef,#694cff);
+    box-shadow:0 0 22px #2367ce55;font-size:29px
+}
+.hero h2{font-size:25px}
+.hero h2 span{color:#55a4ff}
+.hero p{font-size:12px;color:#a9c5f3;line-height:1.8;margin-top:9px}
+.content-grid{
+    display:grid;grid-template-columns:minmax(0,1.2fr) minmax(280px,.8fr);
+    gap:20px;margin-top:22px;align-items:start
+}
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:15px;padding:24px;min-width:0}
+.panel-heading{display:flex;align-items:center;gap:12px;margin-bottom:22px}
+.heading-icon{
+    width:42px;height:42px;display:grid;place-items:center;
+    border-radius:10px;background:#15396f;font-size:21px
+}
+.panel-heading h3{font-size:16px}
+.panel-heading p{font-size:11px;color:var(--muted);margin-top:6px;line-height:1.6}
+label{display:block;font-size:12px;font-weight:600;margin-bottom:10px;color:#dce8ff}
+.upload-area{
+    border:1px dashed #3974c7;background:#091a36;
+    border-radius:12px;padding:25px 16px;text-align:center;
+    margin-bottom:17px
+}
+.upload-icon{font-size:36px;color:#579aff;margin-bottom:10px}
+.upload-area strong{font-size:13px;display:block}
+.upload-area p{font-size:11px;color:#8eaddc;margin-top:8px;line-height:1.7}
+input[type=file]{
+    display:block;width:100%;min-width:0;padding:10px;
+    color:#b7c9e8;background:#081832;border:1px solid #254777;
+    border-radius:8px;font-family:inherit;font-size:11px
+}
+input[type=file]::file-selector-button{
+    background:#1b3e70;color:white;border:0;border-radius:5px;
+    padding:9px 11px;margin-right:10px;cursor:pointer
+}
+.primary-btn,.close-btn{
+    display:block;width:100%;padding:14px;border-radius:9px;
+    font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;
+    transition:.2s
+}
+.primary-btn{
+    margin-top:18px;border:0;color:white;
+    background:linear-gradient(100deg,#347dff,#554fff)
+}
+.primary-btn:hover{filter:brightness(1.12);transform:translateY(-1px)}
+.message{
+    margin-top:20px;padding:14px;border-radius:9px;
+    background:#102e59;border:1px solid #2b5ca0;
+    color:#a9d2ff;font-size:12px;line-height:1.7;overflow-wrap:anywhere
+}
+.student-card{
+    margin-top:20px;border:1px solid var(--border);
+    background:#0a1b36;border-radius:12px;padding:17px
+}
+.student-card h3{font-size:15px;margin-bottom:15px;color:#dce8ff}
+.detail{
+    display:flex;justify-content:space-between;align-items:flex-start;
+    gap:15px;padding:12px 0;border-bottom:1px solid #1a3458
+}
+.detail:last-child{border-bottom:0}
+.detail span{font-size:11px;color:#8eaddc}
+.detail strong{font-size:12px;text-align:right;overflow-wrap:anywhere;max-width:60%}
+.empty-state{text-align:center;padding:18px 5px;color:#91abd2;font-size:12px;line-height:1.8}
+.empty-icon{font-size:31px;margin-bottom:10px}
+.close-panel{margin-top:20px;padding:19px;border:1px solid #713650;border-radius:12px;background:#29172f}
+.close-panel h3{font-size:13px}
+.close-panel p{font-size:11px;color:#c7a5bd;line-height:1.7;margin-top:7px}
+.close-btn{margin-top:14px;background:#482036;color:#ffdce8;border:1px solid #e34469}
+.close-btn:hover{background:#67233e}
+.back{display:inline-block;margin-top:22px;color:#55a4ff;text-decoration:none;font-size:12px}
+.back:hover{color:white}
+.footer{
+    display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;
+    border-top:1px solid var(--border);margin-top:28px;padding-top:18px;
+    color:#718db9;font-size:10px
+}
+@media(max-width:1000px){
+    .sidebar{width:210px}
+    .main{padding:22px 18px}
+    .content-grid{grid-template-columns:1fr}
+}
+@media(max-width:650px){
+    .layout{flex-direction:column}
+    .sidebar{width:100%;padding:15px}
+    .brand{padding-bottom:14px}
+    .menu-title,.sidebar-status{display:none}
+    .sidebar nav{display:flex;overflow-x:auto;gap:5px;padding-top:12px}
+    .nav-link{flex-shrink:0;padding:10px;font-size:10px;margin:0}
+    .nav-icon{display:none}
+    .main{padding:18px 13px}
+    .topbar h1{font-size:19px}
+    .date-chip{display:none}
+    .hero{padding:19px;gap:13px}
+    .hero-icon{width:49px;height:49px;font-size:22px}
+    .hero h2{font-size:20px}
+    .panel{padding:18px}
+    .detail{gap:10px}
+}
+</style>
 </head>
 
 <body>
+<div class="layout">
 
-<div class="container">
-
-    <h1>Mark Attendance</h1>
-
-    <p style="text-align:center;">
-        Upload student face image
-    </p>
-
-
-    <form method="POST" enctype="multipart/form-data">
-
-        <label>Face Image</label>
-
-        <input
-            type="file"
-            name="face_image"
-            accept="image/*"
-            required
-        >
-
-        <button type="submit">
-            Recognize & Mark Present
-        </button>
-
-    </form>
-
-
-    {% if message %}
-
-    <div class="message">
-        {{ message }}
+<aside class="sidebar">
+    <div class="brand">
+        <div class="brand-icon">◈</div>
+        <div><h2>SMART ATTEND</h2><p>AI Attendance Platform</p></div>
     </div>
 
-    {% endif %}
+    <p class="menu-title">MAIN MENU</p>
+    <nav>
+        <a href="/" class="nav-link"><span class="nav-icon">⌂</span>Dashboard</a>
+        <a href="/register" class="nav-link"><span class="nav-icon">♙</span>Student Registration</a>
+        <a href="/attendance" class="nav-link active"><span class="nav-icon">◉</span>Mark Attendance</a>
+        <a href="/od" class="nav-link"><span class="nav-icon">▤</span>OD Letter</a>
+        <a href="/report" class="nav-link"><span class="nav-icon">▥</span>Attendance Report</a>
+    </nav>
 
+    <div class="sidebar-status">
+        <div class="status-title"><span class="status-dot"></span>System Online</div>
+        <p>Deep learning based face recognition attendance management.</p>
+    </div>
+</aside>
 
-    <form action="/close-attendance" method="POST">
+<main class="main">
+    <header class="topbar">
+        <div>
+            <p class="breadcrumb">Attendance Management / Recognition</p>
+            <h1>Mark Attendance</h1>
+        </div>
+        <div class="top-right">
+            <div class="date-chip" id="todayDate"></div>
+            <div class="avatar">SA</div>
+        </div>
+    </header>
 
-        <button type="submit" class="close">
-            Close Attendance & Mark Absent
-        </button>
+    <section class="hero">
+        <div class="hero-icon">◎</div>
+        <div>
+            <h2>Face <span>Recognition</span></h2>
+            <p>Upload a registered student's face photo to mark attendance<br>
+            using deep learning face recognition.</p>
+        </div>
+    </section>
 
-    </form>
+    <div class="content-grid">
+        <section class="panel">
+            <div class="panel-heading">
+                <div class="heading-icon">⇧</div>
+                <div>
+                    <h3>Upload Student Photo</h3>
+                    <p>Select a clear face image of the registered student.</p>
+                </div>
+            </div>
 
+            <form method="POST" enctype="multipart/form-data">
+                <label for="face_image">Student Face Image</label>
 
-    <a href="/" class="back">
-        ← Back to Home
-    </a>
+                <div class="upload-area">
+                    <div class="upload-icon">☁</div>
+                    <strong>Choose a student photo</strong>
+                    <p>Use a clear JPG, PNG or WEBP image<br>For best results, keep the face visible.</p>
+                </div>
 
+                <input type="file" id="face_image" name="face_image"
+                       accept="image/jpeg,image/png,image/webp" required>
+
+                <button type="submit" class="primary-btn">
+                    ◎ &nbsp; Recognize &amp; Mark Attendance &nbsp; →
+                </button>
+            </form>
+
+            {% if message %}
+            <div class="message">{{ message }}</div>
+            {% endif %}
+        </section>
+
+        <section class="panel">
+            <div class="panel-heading">
+                <div class="heading-icon">♙</div>
+                <div>
+                    <h3>Student Details</h3>
+                    <p>Information for the recognized student.</p>
+                </div>
+            </div>
+
+            {% if student %}
+            <div class="student-card">
+                <h3>Recognized Student</h3>
+                <div class="detail"><span>Student Name</span><strong>{{ student.name }}</strong></div>
+                <div class="detail"><span>Register Number</span><strong>{{ student.register_number }}</strong></div>
+                <div class="detail"><span>Department</span><strong>{{ student.department }}</strong></div>
+                <div class="detail"><span>College Name</span><strong>{{ student.college_name }}</strong></div>
+                <div class="detail"><span>Current Semester</span><strong>{{ student.current_semester }}</strong></div>
+                <div class="detail"><span>Previous Semester CGPA</span><strong>{{ student.previous_semester_cgpa }}</strong></div>
+            </div>
+            {% else %}
+            <div class="student-card">
+                <div class="empty-state">
+                    <div class="empty-icon">♙</div>
+                    <strong>No Student Recognized Yet</strong>
+                    <p>Student information will appear here after face recognition.</p>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="close-panel">
+                <h3>Close Attendance Session</h3>
+                <p>Close the session and mark remaining students absent. Confirm before continuing.</p>
+                <form action="/close-attendance" method="POST"
+                      onsubmit="return confirm('Close attendance and mark remaining students absent?');">
+                    <button type="submit" class="close-btn">
+                        ⚠ &nbsp; Close Attendance &amp; Mark Absent
+                    </button>
+                </form>
+            </div>
+        </section>
+    </div>
+
+    <a href="/" class="back">← Back to Home</a>
+
+    <footer class="footer">
+        <span>Smart Attendance System</span>
+        <span>Deep Learning · Face Recognition</span>
+    </footer>
+</main>
 </div>
 
+<script>
+document.getElementById("todayDate").textContent =
+    new Date().toLocaleDateString("en-IN", {
+        day: "2-digit", month: "short", year: "numeric"
+    });
+</script>
 </body>
-
 </html>
+

@@ -1,155 +1,420 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="en">
 <head>
-
-    <title>Attendance Report</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance Report | Smart Attend</title>
 
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg: #071329;
+            --panel: #0d2041;
+            --blue: #347dff;
+            --text: #f1f5ff;
+            --muted: #9bb8e8;
+            --border: #1c3e70;
+        }
 
         body {
-            font-family: Arial;
-            background: #f4f7fb;
-            padding: 40px;
+            font-family: Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
         }
 
-        .container {
-            max-width: 1100px;
-            margin: auto;
-            background: white;
+        .sidebar {
+            width: 245px;
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            padding: 28px 18px;
+            background: #091831;
+            border-right: 1px solid var(--border);
+        }
+
+        .brand {
+            font-size: 20px;
+            font-weight: bold;
+            line-height: 1.5;
+            margin-bottom: 8px;
+        }
+
+        .brand span {
+            color: var(--blue);
+        }
+
+        .subtitle {
+            color: var(--muted);
+            font-size: 12px;
+            margin-bottom: 38px;
+        }
+
+        .nav-title {
+            color: #7796c5;
+            font-size: 11px;
+            letter-spacing: 1.5px;
+            margin: 24px 10px 12px;
+        }
+
+        .nav-link {
+            display: block;
+            padding: 13px 12px;
+            margin: 7px 0;
+            color: var(--muted);
+            text-decoration: none;
+            border-radius: 9px;
+            font-size: 14px;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            background: #17366a;
+            color: white;
+        }
+
+        .nav-link.active {
+            border-left: 3px solid var(--blue);
+        }
+
+        .online {
+            position: absolute;
+            bottom: 25px;
+            left: 18px;
+            right: 18px;
+            padding: 15px;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            font-size: 13px;
+        }
+
+        .online span {
+            color: #45e0a0;
+        }
+
+        .main {
+            margin-left: 245px;
             padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
         }
 
-        h1 {
-            text-align: center;
-            margin-bottom: 30px;
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 32px;
+        }
+
+        .breadcrumb {
+            color: var(--muted);
+            font-size: 13px;
+            margin-bottom: 8px;
+        }
+
+        .topbar h2 {
+            font-size: 24px;
+        }
+
+        .profile {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px 16px;
+            font-size: 13px;
+        }
+
+        .hero {
+            padding: 28px;
+            border-radius: 16px;
+            margin-bottom: 25px;
+            background: linear-gradient(120deg, #12346a, #1259c9);
+            border: 1px solid #2869cb;
+        }
+
+        .hero p {
+            color: #d1e1ff;
+            font-size: 14px;
+            margin-top: 10px;
+            line-height: 1.6;
+        }
+
+        .report-panel {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 15px;
+            padding: 24px;
+        }
+
+        .report-heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 22px;
+        }
+
+        .report-heading p {
+            color: var(--muted);
+            font-size: 13px;
+            margin-top: 7px;
+        }
+
+        .report-label {
+            padding: 8px 12px;
+            background: #17366a;
+            border-radius: 8px;
+            color: #bcd5ff;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+
+        .table-wrap {
+            width: 100%;
+            overflow-x: auto;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-        }
-
-        th,
-        td {
-            padding: 12px;
-            text-align: center;
-            border-bottom: 1px solid #ddd;
+            min-width: 750px;
         }
 
         th {
-            background: #4CAF50;
+            padding: 15px 12px;
+            text-align: left;
+            background: #142d55;
+            color: #bcd5ff;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 16px 12px;
+            border-bottom: 1px solid var(--border);
+            font-size: 13px;
+            color: #e0eaff;
+        }
+
+        tbody tr:hover {
+            background: #11294d;
+        }
+
+        .student-name {
+            font-weight: bold;
             color: white;
         }
 
-        tr:hover {
-            background: #f5f5f5;
+        .reg-number {
+            color: var(--muted);
+        }
+
+        .status {
+            display: inline-block;
+            padding: 7px 11px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 12px;
+            white-space: nowrap;
         }
 
         .present {
-            font-weight: bold;
+            background: #123d39;
+            color: #65e6b5;
         }
 
         .absent {
-            font-weight: bold;
+            background: #48242f;
+            color: #ff9ba8;
         }
 
         .od {
-            font-weight: bold;
+            background: #493819;
+            color: #ffd47a;
         }
 
         .back {
             display: inline-block;
-            margin-top: 25px;
-            padding: 12px 20px;
-            background: #4CAF50;
+            margin-top: 24px;
+            padding: 12px 18px;
+            background: var(--blue);
             color: white;
             text-decoration: none;
-            border-radius: 7px;
+            border-radius: 9px;
+            font-size: 14px;
+            font-weight: bold;
         }
 
-    </style>
+        .back:hover {
+            background: #2368e5;
+        }
 
+        .footer {
+            margin-top: 25px;
+            color: #7796c5;
+            font-size: 12px;
+            text-align: center;
+        }
+
+        @media (max-width: 850px) {
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+                padding: 18px;
+            }
+
+            .subtitle,
+            .nav-title,
+            .online {
+                display: none;
+            }
+
+            .sidebar nav {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 5px;
+                margin-top: 12px;
+            }
+
+            .nav-link {
+                margin: 0;
+                padding: 10px;
+            }
+
+            .main {
+                margin-left: 0;
+                padding: 20px 14px;
+            }
+
+            .topbar h2 {
+                font-size: 20px;
+            }
+
+            .hero,
+            .report-panel {
+                padding: 18px;
+            }
+        }
+    </style>
 </head>
 
 <body>
 
-<div class="container">
+<aside class="sidebar">
+    <div class="brand">SMART <span>ATTEND</span></div>
+    <div class="subtitle">AI Attendance Platform</div>
 
-    <h1>Attendance Report</h1>
+    <div class="nav-title">MAIN MENU</div>
 
-    <table>
+    <nav>
+        <a href="/" class="nav-link">Dashboard</a>
+        <a href="/register" class="nav-link">Student Registration</a>
+        <a href="/attendance" class="nav-link">Mark Attendance</a>
+        <a href="/od" class="nav-link">OD Letter</a>
+        <a href="/report" class="nav-link active">Attendance Report</a>
+    </nav>
 
-        <tr>
+    <div class="online">
+        <span>●</span> System Online
+        <p style="color: var(--muted); margin-top: 6px;">
+            Deep Learning Enabled
+        </p>
+    </div>
+</aside>
 
-            <th>Name</th>
+<main class="main">
 
-            <th>Register Number</th>
+    <header class="topbar">
+        <div>
+            <div class="breadcrumb">Dashboard / Reports</div>
+            <h2>Attendance Report</h2>
+        </div>
 
-            <th>Department</th>
+        <div class="profile">SA &nbsp; Admin Panel</div>
+    </header>
 
-            <th>Date</th>
+    <section class="hero">
+        <h1>Attendance Overview</h1>
+        <p>
+            View student attendance records, including date, time and status.
+            All available records are displayed in the report below.
+        </p>
+    </section>
 
-            <th>Time</th>
+    <section class="report-panel">
+        <div class="report-heading">
+            <div>
+                <h3>Attendance Records</h3>
+                <p>Student-wise attendance history</p>
+            </div>
 
-            <th>Status</th>
+            <div class="report-label">● Record Details</div>
+        </div>
 
-        </tr>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Student Name</th>
+                        <th>Register Number</th>
+                        <th>Department</th>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
 
+                <tbody>
+                    {% for record in records %}
+                    <tr>
+                        <td class="student-name">
+                            {{ record["name"] }}
+                        </td>
 
-        {% for record in records %}
+                        <td class="reg-number">
+                            {{ record["register_number"] }}
+                        </td>
 
-        <tr>
+                        <td>{{ record["department"] }}</td>
+                        <td>{{ record["date"] }}</td>
+                        <td>{{ record["time"] }}</td>
 
-            <td>{{ record["name"] }}</td>
+                        <td>
+                            {% if record["status"] == "Present" %}
+                                <span class="status present">Present ✓</span>
+                            {% elif record["status"] == "Absent" %}
+                                <span class="status absent">Absent ✕</span>
+                            {% else %}
+                                <span class="status od">
+                                    {{ record["status"] }} ·
+                                </span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
 
-            <td>{{ record["register_number"] }}</td>
+        <a href="/" class="back">← Back to Dashboard</a>
+    </section>
 
-            <td>{{ record["department"] }}</td>
+    <div class="footer">
+        Smart Attend · Deep Learning Attendance Management System
+    </div>
 
-            <td>{{ record["date"] }}</td>
-
-            <td>{{ record["time"] }}</td>
-
-            <td>
-
-                {% if record["status"] == "Present" %}
-
-                    <span class="present">
-                        Present ✅
-                    </span>
-
-                {% elif record["status"] == "Absent" %}
-
-                    <span class="absent">
-                        Absent ❌
-                    </span>
-
-                {% else %}
-
-                    <span class="od">
-                        {{ record["status"] }} 📄
-                    </span>
-
-                {% endif %}
-
-            </td>
-
-        </tr>
-
-        {% endfor %}
-
-    </table>
-
-
-    <a href="/" class="back">
-        ← Back to Home
-    </a>
-
-</div>
+</main>
 
 </body>
+</html>
 
 </html>

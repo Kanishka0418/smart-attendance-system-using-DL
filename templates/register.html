@@ -1,119 +1,379 @@
+
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Student Registration</title>
+    <title>Student Registration | Smart Attend</title>
 
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #f4f7fb;
+        * {
             margin: 0;
-            padding: 50px;
+            padding: 0;
+            box-sizing: border-box;
         }
 
-        .container {
-            max-width: 500px;
+        body {
+            font-family: "Segoe UI", Arial, sans-serif;
+            background: #0b1120;
+            color: #f1f5ff;
+            min-height: 100vh;
+            padding: 35px 18px;
+        }
+
+        .topbar {
+            max-width: 1050px;
+            margin: 0 auto 28px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-icon {
+            width: 43px;
+            height: 43px;
+            display: grid;
+            place-items: center;
+            border-radius: 13px;
+            background: linear-gradient(135deg, #528bff, #6258e8);
+            font-size: 23px;
+        }
+
+        .brand h2 {
+            font-size: 16px;
+            letter-spacing: 1px;
+        }
+
+        .brand p {
+            font-size: 11px;
+            color: #9aa9c2;
+            margin-top: 4px;
+        }
+
+        .top-label {
+            color: #91a5c6;
+            font-size: 12px;
+            border: 1px solid rgba(255,255,255,.1);
+            background: #111b2e;
+            padding: 10px 15px;
+            border-radius: 9px;
+        }
+
+        .page-layout {
+            max-width: 1050px;
             margin: auto;
-            background: white;
-            padding: 35px;
-            border-radius: 15px;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            display: grid;
+            grid-template-columns: 0.85fr 1.35fr;
+            border: 1px solid rgba(255,255,255,.09);
+            border-radius: 20px;
+            overflow: hidden;
+            background: #111b2e;
+            box-shadow: 0 20px 60px rgba(0,0,0,.22);
         }
 
-        h1 {
-            text-align: center;
-            margin-bottom: 10px;
+        .intro-panel {
+            padding: 42px 32px;
+            background:
+                radial-gradient(circle at 10% 10%, rgba(82,139,255,.2), transparent 45%),
+                linear-gradient(145deg, #172b50, #141d35);
+            border-right: 1px solid rgba(255,255,255,.08);
         }
 
-        .subtitle {
-            text-align: center;
-            color: #666;
-            margin-bottom: 30px;
+        .tag {
+            display: inline-block;
+            color: #8cb6ff;
+            background: rgba(82,139,255,.12);
+            border: 1px solid rgba(82,139,255,.2);
+            padding: 8px 11px;
+            border-radius: 7px;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+        }
+
+        .intro-panel h1 {
+            font-size: 30px;
+            line-height: 1.35;
+            margin-top: 25px;
+        }
+
+        .intro-panel h1 span {
+            color: #70b8ff;
+        }
+
+        .intro-text {
+            color: #b0bfd8;
+            font-size: 13px;
+            line-height: 1.9;
+            margin-top: 16px;
+        }
+
+        .info-card {
+            margin-top: 35px;
+            padding: 18px;
+            background: rgba(255,255,255,.045);
+            border: 1px solid rgba(255,255,255,.09);
+            border-radius: 12px;
+        }
+
+        .info-card strong {
+            font-size: 13px;
+        }
+
+        .info-card p {
+            color: #aebbd0;
+            font-size: 12px;
+            line-height: 1.8;
+            margin-top: 8px;
+        }
+
+        .form-panel {
+            padding: 38px 35px;
+        }
+
+        .form-heading {
+            margin-bottom: 28px;
+        }
+
+        .form-heading h2 {
+            font-size: 22px;
+        }
+
+        .form-heading p {
+            color: #9aa9c2;
+            font-size: 12px;
+            margin-top: 8px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
         }
 
         label {
             display: block;
-            margin-top: 15px;
-            margin-bottom: 7px;
-            font-weight: bold;
+            color: #dbe5f6;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 9px;
+        }
+
+        .required {
+            color: #70b8ff;
         }
 
         input {
             width: 100%;
-            padding: 12px;
-            border: 1px solid #ccc;
-            border-radius: 7px;
-            box-sizing: border-box;
+            padding: 13px 14px;
+            color: #f1f5ff;
+            background: #0c1527;
+            border: 1px solid #293750;
+            border-radius: 9px;
+            outline: none;
+            font: inherit;
+            font-size: 13px;
+            transition: border-color .2s, box-shadow .2s;
         }
 
-        button {
-            width: 100%;
-            padding: 13px;
-            margin-top: 25px;
-            background: #4CAF50;
-            color: white;
+        input:focus {
+            border-color: #528bff;
+            box-shadow: 0 0 0 3px rgba(82,139,255,.12);
+        }
+
+        input::placeholder {
+            color: #6f819e;
+        }
+
+        input[type="file"] {
+            padding: 11px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        input[type="file"]::file-selector-button {
+            background: #243756;
+            color: #dce8ff;
             border: none;
-            border-radius: 7px;
-            font-size: 16px;
-            font-weight: bold;
+            border-radius: 6px;
+            padding: 8px 11px;
+            margin-right: 12px;
             cursor: pointer;
         }
 
-        button:hover {
-            background: #388E3C;
+        .upload-note {
+            color: #8495b1;
+            font-size: 11px;
+            margin-top: 9px;
+            line-height: 1.6;
         }
 
-        .back {
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            margin-top: 5px;
+            border: none;
+            border-radius: 9px;
+            color: white;
+            font-size: 13px;
+            font-weight: 700;
+            background: linear-gradient(100deg, #528bff, #6265ef);
+            cursor: pointer;
+            transition: .2s;
+        }
+
+        .submit-btn:hover {
+            filter: brightness(1.12);
+            transform: translateY(-1px);
+        }
+
+        .back-link {
             display: block;
             text-align: center;
-            margin-top: 20px;
+            margin-top: 22px;
+            color: #9db0ce;
             text-decoration: none;
-            color: #555;
+            font-size: 12px;
+        }
+
+        .back-link:hover {
+            color: #80aaff;
+        }
+
+        .footer {
+            max-width: 1050px;
+            margin: 22px auto 0;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+            color: #71819c;
+            font-size: 11px;
+        }
+
+        @media (max-width: 720px) {
+            .page-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .intro-panel {
+                padding: 28px 24px;
+                border-right: none;
+                border-bottom: 1px solid rgba(255,255,255,.08);
+            }
+
+            .intro-panel h1 {
+                font-size: 25px;
+            }
+
+            .info-card {
+                margin-top: 22px;
+            }
+
+            .form-panel {
+                padding: 28px 22px;
+            }
+
+            .top-label {
+                display: none;
+            }
         }
     </style>
-
 </head>
 
 <body>
 
-    <div class="container">
+    <header class="topbar">
+        <div class="brand">
+            <div class="brand-icon">◈</div>
+            <div>
+                <h2>SMART ATTEND</h2>
+                <p>AI Attendance Platform</p>
+            </div>
+        </div>
 
-        <h1>Student Registration</h1>
+        <div class="top-label">STUDENT MANAGEMENT</div>
+    </header>
 
-        <p class="subtitle">
-            Register student details and face image
-        </p>
+    <main class="page-layout">
 
-        <form method="POST" enctype="multipart/form-data">
+        <section class="intro-panel">
+            <span class="tag">STUDENT PORTAL</span>
 
-            <label>Student Name</label>
-            <input type="text" name="name" required>
+            <h1>Build your student database with <span>smart recognition.</span></h1>
 
-            <label>Register Number</label>
-            <input type="text" name="register_number" required>
+            <p class="intro-text">
+                Register student information and upload a face image
+                to enable the deep learning attendance system to identify
+                registered students.
+            </p>
 
-            <label>Department</label>
-            <input type="text" name="department" required>
+            <div class="info-card">
+                <strong>◈ &nbsp; Registration Information</strong>
+                <p>
+                    Enter the student's details accurately. Use a clear,
+                    front-facing photo for better face recognition.
+                </p>
+            </div>
+        </section>
 
-            <label>Face Image</label>
-            <input type="file" name="face_image" accept="image/*" required>
+        <section class="form-panel">
+            <div class="form-heading">
+                <h2>Student Registration</h2>
+                <p>Fill in the details below to register a student.</p>
+            </div>
 
-            <button type="submit">
-                Register Student
-            </button>
+            <form method="POST" enctype="multipart/form-data">
 
-        </form>
+                <div class="form-group">
+                    <label for="name">Student Name <span class="required">*</span></label>
+                    <input type="text" id="name" name="name"
+                           placeholder="Enter full name" required>
+                </div>
 
-        <a href="/" class="back">
-            ← Back to Home
-        </a>
+                <div class="form-group">
+                    <label for="register_number">Register Number <span class="required">*</span></label>
+                    <input type="text" id="register_number" name="register_number"
+                           placeholder="Enter register number" required>
+                </div>
 
-    </div>
+                <div class="form-group">
+                    <label for="department">Department <span class="required">*</span></label>
+                    <input type="text" id="department" name="department"
+                           placeholder="e.g. AI & DS, CSE" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="face_image">Face Image <span class="required">*</span></label>
+                    <input type="file" id="face_image" name="face_image"
+                           accept="image/*" required>
+                    <p class="upload-note">
+                        Upload a clear image showing the student's face.
+                    </p>
+                </div>
+
+                <button type="submit" class="submit-btn">
+                    Register Student &nbsp; →
+                </button>
+
+            </form>
+
+            <a href="/" class="back-link">← Back to Dashboard</a>
+        </section>
+
+    </main>
+
+    <footer class="footer">
+        <span>Smart Attendance System</span>
+        <span>Deep Learning · Face Recognition</span>
+    </footer>
 
 </body>
+</html>
 
 </html>

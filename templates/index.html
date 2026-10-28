@@ -1,91 +1,623 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="en">
 <head>
-
-    <title>Face Attendance System</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Attend | AI Attendance Platform</title>
 
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg: #06132d;
+            --panel: #0b2045;
+            --blue: #087dff;
+            --light-blue: #66b3ff;
+            --text: #f3f7ff;
+            --muted: #a5bee8;
+            --border: #16417b;
+        }
 
         body {
-            font-family: Arial;
-            background: #f4f7fb;
-            margin: 0;
+            font-family: Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
         }
 
-        .container {
-            max-width: 800px;
-            margin: 80px auto;
-            background: white;
-            padding: 50px;
-            text-align: center;
-            border-radius: 20px;
-            box-shadow: 0 5px 25px rgba(0,0,0,0.1);
+        .sidebar {
+            width: 250px;
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            background: #071831;
+            border-right: 1px solid var(--border);
+            padding: 28px 18px;
+            display: flex;
+            flex-direction: column;
         }
 
-        h1 {
-            margin-bottom: 10px;
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 0 6px 28px;
+            border-bottom: 1px solid var(--border);
         }
 
-        p {
-            color: #666;
+        .brand-icon {
+            width: 43px;
+            height: 43px;
+            display: grid;
+            place-items: center;
+            background: #103b78;
+            border: 1px solid #1688ff;
+            border-radius: 12px;
+            color: #6fc4ff;
+            font-size: 25px;
         }
 
-        .buttons {
-            margin-top: 35px;
+        .brand h2 {
+            font-size: 17px;
+            letter-spacing: 0.5px;
         }
 
-        .button {
-            display: inline-block;
-            padding: 15px 25px;
-            margin: 10px;
-            background: #4CAF50;
-            color: white;
+        .brand h2 span {
+            color: var(--light-blue);
+        }
+
+        .brand p {
+            color: var(--muted);
+            font-size: 11px;
+            margin-top: 5px;
+        }
+
+        .menu-title {
+            color: #718ebd;
+            font-size: 11px;
+            letter-spacing: 2px;
+            margin: 30px 10px 14px;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 13px;
+            padding: 14px 12px;
+            margin-bottom: 8px;
+            color: var(--muted);
             text-decoration: none;
-            border-radius: 8px;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: 0.2s;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            background: linear-gradient(100deg, #104bb0, #07377e);
+            color: white;
+        }
+
+        .nav-icon {
+            font-size: 19px;
+            width: 25px;
+            text-align: center;
+        }
+
+        .system-box {
+            margin-top: auto;
+            padding: 17px 14px;
+            background: #0b2045;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+        }
+
+        .system-status {
+            color: #43e5b0;
+            font-weight: bold;
+            font-size: 13px;
+        }
+
+        .system-box p {
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.7;
+            margin-top: 10px;
+        }
+
+        .main {
+            margin-left: 250px;
+            min-height: 100vh;
+        }
+
+        .topbar {
+            min-height: 82px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 35px;
+            border-bottom: 1px solid var(--border);
+            background: #081a37;
+        }
+
+        .breadcrumb {
+            color: var(--muted);
+            font-size: 12px;
+            margin-bottom: 7px;
+        }
+
+        .topbar h3 {
+            font-size: 19px;
+        }
+
+        .admin {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 13px;
+            color: var(--muted);
+        }
+
+        .avatar {
+            width: 42px;
+            height: 42px;
+            display: grid;
+            place-items: center;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #347dff, #6447f5);
+            color: white;
             font-weight: bold;
         }
 
-        .button:hover {
-            background: #388E3C;
+        .content {
+            padding: 32px;
+            max-width: 1600px;
+            margin: auto;
         }
 
-    </style>
+        .hero {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 25px;
+            min-height: 300px;
+            padding: 38px 42px;
+            border-radius: 18px;
+            border: 1px solid #1554a5;
+            background:
+                radial-gradient(circle at 85% 45%, #103d80 0%, transparent 32%),
+                linear-gradient(115deg, #0d2856, #071b3d);
+            overflow: hidden;
+        }
 
+        .hero-content {
+            max-width: 600px;
+        }
+
+        .eyebrow {
+            color: var(--light-blue);
+            font-size: 12px;
+            letter-spacing: 4px;
+            font-weight: bold;
+            margin-bottom: 18px;
+        }
+
+        .hero h1 {
+            font-size: clamp(29px, 3vw, 43px);
+            line-height: 1.2;
+            margin-bottom: 17px;
+        }
+
+        .hero h1 span {
+            color: #278fff;
+        }
+
+        .hero p {
+            color: #b1c9f0;
+            line-height: 1.9;
+            font-size: 15px;
+            max-width: 490px;
+        }
+
+        .hero-button {
+            display: inline-block;
+            margin-top: 24px;
+            padding: 13px 20px;
+            background: var(--blue);
+            border-radius: 9px;
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+
+        .hero-button:hover {
+            background: #3696ff;
+            transform: translateY(-2px);
+        }
+
+        .face-visual {
+            width: 210px;
+            height: 210px;
+            flex-shrink: 0;
+            border: 1px solid #1769c5;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            background: radial-gradient(circle, #104c96, #071a3b 70%);
+            box-shadow: 0 0 45px #0754a544;
+            font-size: 95px;
+        }
+
+        .section-heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 34px 0 20px;
+            gap: 12px;
+        }
+
+        .section-heading h2 {
+            font-size: 21px;
+        }
+
+        .section-heading p {
+            color: var(--muted);
+            font-size: 12px;
+            margin-top: 7px;
+        }
+
+        .live-badge {
+            color: #43e5b0;
+            background: #10372f;
+            border: 1px solid #1b6655;
+            padding: 9px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            white-space: nowrap;
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 18px;
+        }
+
+        .card {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            min-height: 255px;
+            padding: 23px 20px;
+            border-radius: 15px;
+            border: 1px solid var(--border);
+            background: linear-gradient(145deg, #0d2550, #091a39);
+            text-decoration: none;
+            color: var(--text);
+            transition: 0.25s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            border-color: #2589ff;
+            box-shadow: 0 10px 30px #00112e88;
+        }
+
+        .card-icon {
+            width: 58px;
+            height: 58px;
+            display: grid;
+            place-items: center;
+            border-radius: 16px;
+            font-size: 27px;
+            margin-bottom: 22px;
+            background: #103e83;
+            border: 1px solid #237ce8;
+        }
+
+        .card:nth-child(2) .card-icon {
+            background: #282c80;
+            border-color: #575eff;
+        }
+
+        .card:nth-child(3) .card-icon {
+            background: #104c55;
+            border-color: #0bbcae;
+        }
+
+        .card:nth-child(4) .card-icon {
+            background: #322779;
+            border-color: #7665ff;
+        }
+
+        .card h3 {
+            font-size: 16px;
+            margin-bottom: 12px;
+        }
+
+        .card p {
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.8;
+            flex-grow: 1;
+        }
+
+        .card-bottom {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            margin-top: 20px;
+            color: #69baff;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .arrow {
+            width: 35px;
+            height: 35px;
+            display: grid;
+            place-items: center;
+            border-radius: 50%;
+            background: #075bd6;
+            color: white;
+            font-size: 20px;
+        }
+
+        .footer {
+            margin-top: 36px;
+            padding: 20px 0;
+            text-align: center;
+            border-top: 1px solid var(--border);
+            color: #7fa3d8;
+            font-size: 11px;
+            letter-spacing: 2px;
+        }
+
+        @media (max-width: 1150px) {
+            .cards {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .face-visual {
+                width: 150px;
+                height: 150px;
+                font-size: 65px;
+            }
+        }
+
+        @media (max-width: 750px) {
+            .sidebar {
+                position: relative;
+                width: 100%;
+                height: auto;
+                padding: 18px;
+            }
+
+            .brand {
+                padding-bottom: 15px;
+            }
+
+            .menu-title,
+            .system-box {
+                display: none;
+            }
+
+            .sidebar nav {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 5px;
+                margin-top: 15px;
+            }
+
+            .nav-link {
+                margin: 0;
+                padding: 10px;
+                font-size: 12px;
+            }
+
+            .main {
+                margin-left: 0;
+            }
+
+            .topbar {
+                padding: 17px;
+            }
+
+            .content {
+                padding: 18px;
+            }
+
+            .hero {
+                padding: 27px 22px;
+            }
+
+            .face-visual {
+                display: none;
+            }
+
+            .cards {
+                grid-template-columns: 1fr;
+            }
+
+            .card {
+                min-height: 220px;
+            }
+
+            .section-heading h2 {
+                font-size: 18px;
+            }
+        }
+    </style>
 </head>
 
 <body>
 
-<div class="container">
+<aside class="sidebar">
 
-    <h1>Face Recognition Attendance System</h1>
-
-    <p>
-        Deep Learning Based Student Attendance Management
-    </p>
-
-    <div class="buttons">
-
-        <a href="/register" class="button">
-            Student Registration
-        </a>
-
-        <a href="/attendance" class="button">
-            Mark Attendance
-        </a>
-
-        <a href="/od" class="button">
-            OD Letter
-        </a>
-
-        <a href="/report" class="button">
-            Attendance Report
-        </a>
-
+    <div class="brand">
+        <div class="brand-icon">◇</div>
+        <div>
+            <h2>SMART <span>ATTEND</span></h2>
+            <p>AI Attendance Platform</p>
+        </div>
     </div>
 
-</div>
+    <div class="menu-title">MAIN MENU</div>
+
+    <nav>
+        <a href="/" class="nav-link active">
+            <span class="nav-icon">⌂</span> Home
+        </a>
+
+        <a href="/register" class="nav-link">
+            <span class="nav-icon">♙</span> Student Registration
+        </a>
+
+        <a href="/attendance" class="nav-link">
+            <span class="nav-icon">◎</span> Mark Attendance
+        </a>
+
+        <a href="/od" class="nav-link">
+            <span class="nav-icon">▤</span> OD Letter
+        </a>
+
+        <a href="/report" class="nav-link">
+            <span class="nav-icon">▥</span> Attendance Report
+        </a>
+    </nav>
+
+    <div class="system-box">
+        <div class="system-status">● &nbsp; System Online</div>
+        <p>
+            Deep learning based face recognition attendance management.
+        </p>
+    </div>
+
+</aside>
+
+<main class="main">
+
+    <header class="topbar">
+        <div>
+            <div class="breadcrumb">Smart Attend / Dashboard</div>
+            <h3>Dashboard Overview</h3>
+        </div>
+
+        <div class="admin">
+            <span id="currentDate"></span>
+            <div class="avatar">SA</div>
+        </div>
+    </header>
+
+    <div class="content">
+
+        <section class="hero">
+            <div class="hero-content">
+                <div class="eyebrow">WELCOME TO SMART ATTEND</div>
+
+                <h1>
+                    Face Recognition<br>
+                    <span>Attendance System</span>
+                </h1>
+
+                <p>
+                    Modern student attendance management powered by
+                    Artificial Intelligence and Deep Learning technology.
+                </p>
+
+                <a href="/attendance" class="hero-button">
+                    Mark Attendance &nbsp; →
+                </a>
+            </div>
+
+            <div class="face-visual">◉</div>
+        </section>
+
+        <section class="section-heading">
+            <div>
+                <h2>Quick Access</h2>
+                <p>Select a service to manage student attendance.</p>
+            </div>
+
+            <div class="live-badge">● SYSTEM ACTIVE</div>
+        </section>
+
+        <section class="cards">
+
+            <a href="/register" class="card">
+                <div class="card-icon">♙+</div>
+                <h3>Student Registration</h3>
+                <p>
+                    Register new students with their details and face image.
+                </p>
+                <div class="card-bottom">
+                    <span>Register Student</span>
+                    <span class="arrow">→</span>
+                </div>
+            </a>
+
+            <a href="/attendance" class="card">
+                <div class="card-icon">◎</div>
+                <h3>Mark Attendance</h3>
+                <p>
+                    Upload a student photo and mark attendance using AI face recognition.
+                </p>
+                <div class="card-bottom">
+                    <span>Start Attendance</span>
+                    <span class="arrow">→</span>
+                </div>
+            </a>
+
+            <a href="/od" class="card">
+                <div class="card-icon">▤</div>
+                <h3>OD Letter</h3>
+                <p>
+                    Upload and manage On-Duty letters for student attendance records.
+                </p>
+                <div class="card-bottom">
+                    <span>Upload Letter</span>
+                    <span class="arrow">→</span>
+                </div>
+            </a>
+
+            <a href="/report" class="card">
+                <div class="card-icon">▥</div>
+                <h3>Attendance Report</h3>
+                <p>
+                    View student attendance history, dates, times and status.
+                </p>
+                <div class="card-bottom">
+                    <span>View Reports</span>
+                    <span class="arrow">→</span>
+                </div>
+            </a>
+
+        </section>
+
+        <footer class="footer">
+            SMART ATTEND &nbsp; · &nbsp; AI POWERED &nbsp; ·
+            &nbsp; SECURE &nbsp; · &nbsp; RELIABLE
+        </footer>
+
+    </div>
+</main>
+
+<script>
+    const dateElement = document.getElementById("currentDate");
+
+    dateElement.textContent = new Date().toLocaleDateString("en-IN", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric"
+    });
+</script>
 
 </body>
-
 </html>

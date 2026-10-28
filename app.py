@@ -4,6 +4,7 @@ import sqlite3
 import os
 import cv2
 from datetime import datetime
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 
@@ -11,9 +12,7 @@ os.makedirs("uploads", exist_ok=True)
 os.makedirs("od_letters", exist_ok=True)
 
 
-# -----------------------------
 # DATABASE
-# -----------------------------
 
 def get_connection():
     connection = sqlite3.connect("database.db", timeout=10)
@@ -22,7 +21,6 @@ def get_connection():
 
 
 def create_database():
-
     connection = get_connection()
     cursor = connection.cursor()
 
@@ -32,8 +30,50 @@ def create_database():
             name TEXT NOT NULL,
             register_number TEXT UNIQUE NOT NULL,
             department TEXT NOT NULL,
+            current_year TEXT NOT NULL DEFAULT '',
+            semester TEXT NOT NULL DEFAULT '',
+            previous_marks TEXT NOT NULL DEFAULT '',
+            college_name TEXT NOT NULL DEFAULT '',
+            current_semester TEXT NOT NULL DEFAULT '',
+            previous_semester_cgpa TEXT NOT NULL DEFAULT '',
             face_image TEXT NOT NULL
         )
+    """)
+
+    # Add new columns safely to an existing database.
+    columns = {
+        row["name"]
+        for row in cursor.execute(
+            "PRAGMA table_info(students)"
+        ).fetchall()
+    }
+
+    new_columns = {
+        "current_year": "TEXT NOT NULL DEFAULT ''",
+        "semester": "TEXT NOT NULL DEFAULT ''",
+        "previous_marks": "TEXT NOT NULL DEFAULT ''",
+        "college_name": "TEXT NOT NULL DEFAULT ''",
+        "current_semester": "TEXT NOT NULL DEFAULT ''",
+        "previous_semester_cgpa": "TEXT NOT NULL DEFAULT ''"
+    }
+
+    for column, definition in new_columns.items():
+        if column not in columns:
+            cursor.execute(
+                f"ALTER TABLE students ADD COLUMN {column} {definition}"
+            )
+
+    # Preserve any academic information already stored in old columns.
+    cursor.execute("""
+        UPDATE students
+        SET current_semester = semester
+        WHERE current_semester = '' AND semester != ''
+    """)
+
+    cursor.execute("""
+        UPDATE students
+        SET previous_semester_cgpa = previous_marks
+        WHERE previous_semester_cgpa = '' AND previous_marks != ''
     """)
 
     cursor.execute("""
@@ -63,51 +103,122 @@ def create_database():
 
 
 create_database()
+@app.route("/reset-all-data", methods=["GET", "POST"])
+def reset_all_data():
+    if request.method == "POST":
+        connection = get_connection()
+
+        connection.execute("DELETE FROM attendance")
+        connection.execute("DELETE FROM od_requests")
+        connection.execute("DELETE FROM students")
+
+        connection.execute(
+            "DELETE FROM sqlite_sequence WHERE name IN "
+            "('students', 'attendance', 'od_requests')"
+        )
+
+        connection.commit()
+        connection.close()
+
+        return "All student, attendance and OD records cleared."
+
+    return """
+    <h2>Delete all existing project records?</h2>
+    <p>This will permanently clear students, attendance and OD records.</p>
+    <form method="POST">
+        <button type="submit">Confirm Delete All Data</button>
+    </form>
+    """
 
 
-# -----------------------------
 # HOME
-# -----------------------------
 
 @app.route("/")
 def home():
     return render_template("index.html")
 
 
-# -----------------------------
-# REGISTER
-# -----------------------------
+# REGISTER STUDENT - ONLY FOUR FIELDS
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
-
     if request.method == "POST":
+        name = request.form.get("name", "").strip()
+        register_number = request.form.get(
+            "register_number", ""
+        ).strip()
+        department = request.form.get("department", "").strip()
+        image = request.files.get("face_image")
 
-        name = request.form["name"]
-        register_number = request.form["register_number"]
-        department = request.form["department"]
-        image = request.files["face_image"]
+        if not all([name, register_number, department]):
+            return render_template(
+                "register.html",
+                message="Please fill in all required details."
+            )
 
-        if image.filename == "":
-            return "Please select a face image."
+        if not image or not image.filename:
+            return render_template(
+                "register.html",
+                message="Please upload a face photo."
+            )
 
-        filename = register_number + "_" + image.filename
+        safe_register = secure_filename(register_number)
 
-        image_path = os.path.join(
-            "uploads",
-            filename
-        )
-
-        image.save(image_path)
+        if not safe_register:
+            return render_template(
+                "register.html",
+                message="Invalid register number."
+            )
 
         connection = get_connection()
-        cursor = connection.cursor()
+
+        existing_student = connection.execute(
+            "SELECT id FROM students WHERE register_number = ?",
+            (register_number,)
+        ).fetchone()
+
+        if existing_student:
+            connection.close()
+            return render_template(
+                "register.html",
+                message="Register number already exists."
+            )
+
+        temp_path = os.path.join("uploads", "register_temp.jpg")
+        filename = safe_register + "_face.jpg"
+        image_path = os.path.join("uploads", filename)
+
+        image.save(temp_path)
 
         try:
+            faces = DeepFace.extract_faces(
+                img_path=temp_path,
+                detector_backend="opencv",
+                enforce_detection=True
+            )
 
-            cursor.execute("""
-                INSERT INTO students
-                (name, register_number, department, face_image)
+            if not faces:
+                raise ValueError("No face detected")
+
+        except Exception:
+            connection.close()
+
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
+
+            return render_template(
+                "register.html",
+                message="No face detected. Upload a clear face photo."
+            )
+
+        try:
+            # Academic details are not requested on this form.
+            # They can be populated separately in the database.
+            connection.execute("""
+                INSERT INTO students (
+                    name, register_number, department,
+                    face_image
+                )
                 VALUES (?, ?, ?, ?)
             """, (
                 name,
@@ -119,28 +230,30 @@ def register():
             connection.commit()
 
         except sqlite3.IntegrityError:
-
             connection.close()
 
-            return "Register number already exists."
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
+
+            return render_template(
+                "register.html",
+                message="Register number already exists."
+            )
 
         connection.close()
+        os.replace(temp_path, image_path)
 
-        return redirect(
-            url_for("register_success")
-        )
+        return redirect(url_for("register_success"))
 
-    return render_template("register.html")
+    return render_template("register.html", message="")
 
 
 @app.route("/register-success")
 def register_success():
-
     return """
     <h2 style="text-align:center;margin-top:100px;">
-        Student Registered Successfully! ✅
+        Student Registered Successfully!
     </h2>
-
     <p style="text-align:center;">
         <a href="/register">Register Another Student</a>
         &nbsp;&nbsp;
@@ -149,209 +262,199 @@ def register_success():
     """
 
 
-# -----------------------------
-# ATTENDANCE
-# -----------------------------
+# ATTENDANCE / FACE RECOGNITION
 
 @app.route("/attendance", methods=["GET", "POST"])
 def attendance():
-
-    message = ""
-
     if request.method == "POST":
+        image = request.files.get("face_image")
 
-        image = request.files["face_image"]
-
-        if image.filename == "":
+        if not image or not image.filename:
             return render_template(
                 "attendance.html",
-                message="Please select an image."
+                message="Please upload a face photo.",
+                student=None
             )
 
         temp_path = os.path.join(
-            "uploads",
-            "attendance_temp.jpg"
+            "uploads", "attendance_temp.jpg"
         )
-
         image.save(temp_path)
 
-        attendance_image = cv2.imread(temp_path)
+        uploaded_image = cv2.imread(temp_path)
 
-        if attendance_image is None:
-
+        if uploaded_image is None:
             return render_template(
                 "attendance.html",
-                message="Unable to read the uploaded image."
+                message="Unable to read the image.",
+                student=None
+            )
+
+        try:
+            faces = DeepFace.extract_faces(
+                img_path=temp_path,
+                detector_backend="opencv",
+                enforce_detection=True
+            )
+
+            if not faces:
+                raise ValueError("No face detected")
+
+        except Exception:
+            return render_template(
+                "attendance.html",
+                message="No face detected. Upload a clear face photo.",
+                student=None
             )
 
         connection = get_connection()
-        cursor = connection.cursor()
+        recognized_student = None
+        best_distance = None
 
-        students = cursor.execute(
+        students = connection.execute(
             "SELECT * FROM students"
         ).fetchall()
 
-        today = datetime.now().strftime("%Y-%m-%d")
-        current_time = datetime.now().strftime("%H:%M:%S")
-
-        recognized_student = None
-
         for student in students:
+            registered_image = student["face_image"]
 
-            registered_image = cv2.imread(
-                student["face_image"]
-            )
-
-            if registered_image is None:
+            if (
+                not registered_image
+                or not os.path.exists(registered_image)
+            ):
                 continue
 
             try:
-
                 result = DeepFace.verify(
-                    attendance_image,
-                    registered_image,
+                    img1_path=temp_path,
+                    img2_path=registered_image,
                     model_name="Facenet",
                     detector_backend="opencv",
-                    enforce_detection=False
+                    enforce_detection=True
                 )
 
-                if result["verified"]:
+                distance = result.get("distance")
+                threshold = result.get("threshold")
 
-                    recognized_student = student
-                    break
+                if (
+                    isinstance(distance, (int, float))
+                    and isinstance(threshold, (int, float))
+                    and distance <= threshold
+                ):
+                    if (
+                        best_distance is None
+                        or distance < best_distance
+                    ):
+                        best_distance = distance
+                        recognized_student = dict(student)
 
             except Exception as error:
+                print("Face verification error:", error)
 
-                print(
-                    "Face recognition error:",
-                    error
-                )
+        if recognized_student is None:
+            connection.close()
+            return render_template(
+                "attendance.html",
+                message=(
+                    "Face not recognized. Student is not registered."
+                ),
+                student=None
+            )
 
-        if recognized_student:
+        today = datetime.now().strftime("%Y-%m-%d")
+        current_time = datetime.now().strftime("%H:%M:%S")
+        student_id = recognized_student["id"]
 
-            student_id = recognized_student["id"]
+        od_record = connection.execute("""
+            SELECT 1 FROM od_requests
+            WHERE student_id = ? AND date = ?
+        """, (student_id, today)).fetchone()
 
-            # Check OD
-            od_record = cursor.execute("""
-                SELECT *
-                FROM od_requests
-                WHERE student_id = ?
-                AND date = ?
+        existing = connection.execute("""
+            SELECT 1 FROM attendance
+            WHERE student_id = ? AND date = ?
+        """, (student_id, today)).fetchone()
+
+        if not od_record and not existing:
+            connection.execute("""
+                INSERT INTO attendance
+                (student_id, date, time, status)
+                VALUES (?, ?, ?, ?)
             """, (
-                student_id,
-                today
-            )).fetchone()
-
-            if od_record:
-
-                message = (
-                    "Student is already marked as OD: "
-                    + recognized_student["name"]
-                )
-
-            else:
-
-                existing = cursor.execute("""
-                    SELECT *
-                    FROM attendance
-                    WHERE student_id = ?
-                    AND date = ?
-                """, (
-                    student_id,
-                    today
-                )).fetchone()
-
-                if existing:
-
-                    message = (
-                        "Attendance already marked for "
-                        + recognized_student["name"]
-                    )
-
-                else:
-
-                    cursor.execute("""
-                        INSERT INTO attendance
-                        (student_id, date, time, status)
-                        VALUES (?, ?, ?, ?)
-                    """, (
-                        student_id,
-                        today,
-                        current_time,
-                        "Present"
-                    ))
-
-                    connection.commit()
-
-                    message = (
-                        "Attendance marked: "
-                        + recognized_student["name"]
-                        + " ✅"
-                    )
-
-        else:
-
-            message = "Student not recognized ❌"
+                student_id, today, current_time, "Present"
+            ))
+            connection.commit()
 
         connection.close()
 
+        # Send all six student details to attendance.html.
+        # Empty database fields will display as "Not set".
+        recognized_student["college_name"] = (
+            recognized_student.get("college_name") or "Not set"
+        )
+        recognized_student["current_semester"] = (
+            recognized_student.get("current_semester")
+            or recognized_student.get("semester")
+            or "Not set"
+        )
+        recognized_student["previous_semester_cgpa"] = (
+            recognized_student.get("previous_semester_cgpa")
+            or recognized_student.get("previous_marks")
+            or "Not set"
+        )
+
         return render_template(
             "attendance.html",
-            message=message
+            message="Face matched. Student profile found.",
+            student=recognized_student
         )
 
     return render_template(
         "attendance.html",
-        message=message
+        message="",
+        student=None
     )
 
 
-# -----------------------------
 # OD LETTER
-# -----------------------------
 
 @app.route("/od", methods=["GET", "POST"])
 def od():
-
-    message = ""
-
     connection = get_connection()
-    cursor = connection.cursor()
 
-    students = cursor.execute("""
-        SELECT *
-        FROM students
-        ORDER BY register_number
+    students = connection.execute("""
+        SELECT * FROM students ORDER BY register_number
     """).fetchall()
 
     if request.method == "POST":
+        register_number = request.form.get(
+            "register_number", ""
+        ).strip()
+        od_date = request.form.get("date", "")
+        letter = request.files.get("letter")
 
-        register_number = request.form["register_number"]
-        od_date = request.form["date"]
-        letter = request.files["letter"]
-
-        student = cursor.execute("""
-            SELECT *
-            FROM students
-            WHERE register_number = ?
-        """, (
-            register_number,
-        )).fetchone()
+        student = connection.execute("""
+            SELECT * FROM students WHERE register_number = ?
+        """, (register_number,)).fetchone()
 
         if student is None:
-
             connection.close()
-
             return render_template(
                 "od.html",
                 students=students,
-                message="Student not found ❌"
+                message="Student not found."
             )
 
-        if letter.filename == "":
-
+        if not od_date:
             connection.close()
+            return render_template(
+                "od.html",
+                students=students,
+                message="Please select the OD date."
+            )
 
+        if not letter or not letter.filename:
+            connection.close()
             return render_template(
                 "od.html",
                 students=students,
@@ -359,215 +462,117 @@ def od():
             )
 
         filename = (
-            register_number
-            + "_"
-            + od_date
-            + "_"
-            + letter.filename
+            secure_filename(register_number) + "_"
+            + secure_filename(od_date) + "_"
+            + secure_filename(letter.filename)
         )
 
-        letter_path = os.path.join(
-            "od_letters",
-            filename
-        )
-
+        letter_path = os.path.join("od_letters", filename)
         letter.save(letter_path)
 
-        # Check whether OD already exists
-        existing_od = cursor.execute("""
-            SELECT *
-            FROM od_requests
-            WHERE student_id = ?
-            AND date = ?
-        """, (
-            student["id"],
-            od_date
-        )).fetchone()
+        existing_od = connection.execute("""
+            SELECT id FROM od_requests
+            WHERE student_id = ? AND date = ?
+        """, (student["id"], od_date)).fetchone()
 
         if existing_od:
-
-            cursor.execute("""
+            connection.execute("""
                 UPDATE od_requests
-                SET letter = ?, status = ?
-                WHERE student_id = ?
-                AND date = ?
-            """, (
-                letter_path,
-                "OD",
-                student["id"],
-                od_date
-            ))
-
+                SET letter = ?, status = 'OD'
+                WHERE student_id = ? AND date = ?
+            """, (letter_path, student["id"], od_date))
         else:
-
-            cursor.execute("""
+            connection.execute("""
                 INSERT INTO od_requests
                 (student_id, date, letter, status)
                 VALUES (?, ?, ?, ?)
             """, (
-                student["id"],
-                od_date,
-                letter_path,
-                "OD"
+                student["id"], od_date, letter_path, "OD"
             ))
 
-        # IMPORTANT:
-        # Remove old Present/Absent record
-        # for the same student and date.
-
-        cursor.execute("""
+        connection.execute("""
             DELETE FROM attendance
-            WHERE student_id = ?
-            AND date = ?
-        """, (
-            student["id"],
-            od_date
-        ))
+            WHERE student_id = ? AND date = ?
+        """, (student["id"], od_date))
 
-        # Create only OD record
-
-        cursor.execute("""
+        connection.execute("""
             INSERT INTO attendance
             (student_id, date, time, status)
             VALUES (?, ?, ?, ?)
-        """, (
-            student["id"],
-            od_date,
-            "-",
-            "OD"
-        ))
+        """, (student["id"], od_date, "-", "OD"))
 
         connection.commit()
         connection.close()
 
-        return render_template(
-            "od.html",
-            students=students,
-            message=(
-                "OD marked successfully for "
-                + student["name"]
-                + " ✅"
-            )
-        )
+        return redirect(url_for("od"))
 
     connection.close()
 
     return render_template(
         "od.html",
         students=students,
-        message=message
+        message=""
     )
 
 
-# -----------------------------
 # CLOSE ATTENDANCE
-# -----------------------------
 
 @app.route("/close-attendance", methods=["POST"])
 def close_attendance():
-
     today = datetime.now().strftime("%Y-%m-%d")
-
     connection = get_connection()
-    cursor = connection.cursor()
 
-    students = cursor.execute(
+    students = connection.execute(
         "SELECT * FROM students"
     ).fetchall()
 
     for student in students:
-
         student_id = student["id"]
 
-        # Check OD
-        od_record = cursor.execute("""
-            SELECT *
-            FROM od_requests
-            WHERE student_id = ?
-            AND date = ?
-        """, (
-            student_id,
-            today
-        )).fetchone()
+        od_record = connection.execute("""
+            SELECT 1 FROM od_requests
+            WHERE student_id = ? AND date = ?
+        """, (student_id, today)).fetchone()
 
         if od_record:
-
-            # Remove any old attendance
-            cursor.execute("""
+            connection.execute("""
                 DELETE FROM attendance
-                WHERE student_id = ?
-                AND date = ?
-            """, (
-                student_id,
-                today
-            ))
+                WHERE student_id = ? AND date = ?
+            """, (student_id, today))
 
-            # Add OD only
-            cursor.execute("""
+            connection.execute("""
                 INSERT INTO attendance
                 (student_id, date, time, status)
                 VALUES (?, ?, ?, ?)
-            """, (
-                student_id,
-                today,
-                "-",
-                "OD"
-            ))
+            """, (student_id, today, "-", "OD"))
 
             continue
 
-        # Check existing attendance
+        existing = connection.execute("""
+            SELECT 1 FROM attendance
+            WHERE student_id = ? AND date = ?
+        """, (student_id, today)).fetchone()
 
-        existing = cursor.execute("""
-            SELECT *
-            FROM attendance
-            WHERE student_id = ?
-            AND date = ?
-        """, (
-            student_id,
-            today
-        )).fetchone()
-
-        # Already Present
-        if existing:
-            continue
-
-        # No Present and no OD
-        # Mark Absent
-
-        cursor.execute("""
-            INSERT INTO attendance
-            (student_id, date, time, status)
-            VALUES (?, ?, ?, ?)
-        """, (
-            student_id,
-            today,
-            "-",
-            "Absent"
-        ))
+        if not existing:
+            connection.execute("""
+                INSERT INTO attendance
+                (student_id, date, time, status)
+                VALUES (?, ?, ?, ?)
+            """, (student_id, today, "-", "Absent"))
 
     connection.commit()
     connection.close()
 
-    return redirect(
-        url_for("report")
-    )
+    return redirect(url_for("report"))
 
 
-# -----------------------------
 # REPORT
-# -----------------------------
 
 @app.route("/report")
 def report():
-
     connection = get_connection()
-    cursor = connection.cursor()
 
-    # If OD exists for a student/date,
-    # do not show an old Absent/Present record.
-
-    records = cursor.execute("""
+    records = connection.execute("""
         SELECT
             students.name,
             students.register_number,
@@ -578,34 +583,25 @@ def report():
         FROM attendance
         JOIN students
         ON attendance.student_id = students.id
-
         WHERE NOT (
             attendance.status IN ('Absent', 'Present')
             AND EXISTS (
-                SELECT 1
-                FROM od_requests
+                SELECT 1 FROM od_requests
                 WHERE od_requests.student_id = attendance.student_id
                 AND od_requests.date = attendance.date
             )
         )
-
-        ORDER BY
-            attendance.date DESC,
-            students.register_number
+        ORDER BY attendance.date DESC,
+                 students.register_number
     """).fetchall()
 
     connection.close()
 
-    return render_template(
-        "report.html",
-        records=records
-    )
+    return render_template("report.html", records=records)
 
 
-# -----------------------------
-# RUN
-# -----------------------------
+# RUN APP
 
 if __name__ == "__main__":
-
     app.run(debug=True)
+
